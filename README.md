@@ -23,3 +23,17 @@ where <> is:
 This program periodically sends MQTT commands to `Server.py` to read moisture sensor data and publish it to an airtable table. 
 
 If moisture sensor data for a single zone is too high, it will issue a stop command for that zone.
+
+## nessie\_watering
+
+This is an arduino sketch used to control the hardware for watering: the capacitive sensors for reading soil moisture and the relays for controlling the water pumps.
+
+The arduino communicates with the raspberry pi via a bidirectional serial terminal. It can be compiled via command line with the following functions:
+
+```
+arduino-cli compile -fqbn arduino:avr:uno nessie_watering
+arduino-cli upload -p <port> --fqbn arduino:avr:uno nessie_watering
+```
+
+port is found once the arduino is connected via:
+`arduino-cli board list`
