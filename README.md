@@ -31,7 +31,7 @@ This is an arduino sketch used to control the hardware for watering: the capacit
 The arduino communicates with the raspberry pi via a bidirectional serial terminal. It can be compiled via command line with the following functions:
 
 ```
-arduino-cli compile -fqbn arduino:avr:uno nessie_watering
+arduino-cli compile --fqbn arduino:avr:uno nessie_watering
 arduino-cli upload -p <port> --fqbn arduino:avr:uno nessie_watering
 ```
 
