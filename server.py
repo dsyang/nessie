@@ -4,6 +4,7 @@ import time
 import json
 import paho.mqtt.client as mqtt
 import hardware
+import argparse
 
 from utils import NessieError
 from hardware import NessieHardware

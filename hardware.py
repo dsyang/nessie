@@ -16,14 +16,12 @@ class NessieHardware():
 
     def __init__(self, filename, logger):
         self.conn = serial.Serial(filename, timeout=1) #wait 1 second for reads.
-        self.logger = logger
-        self.config = self.read_configuration()
-        
+        self.logger = logger        
 
     def __enter__(self):
-        return self.conn
+        return self
 
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self.conn.close()
 
     def __read_json(self, string):
@@ -40,10 +38,11 @@ class NessieHardware():
         first function called after establishing connection to read configuration options. Should be a json object that looks like this:
         { 'debug_level': <num>, 'num_zones': <num>, 'num_sensors': <num>, 'solenoid_pin': <num> }
         '''
+        self.conn.write(b'CONFIG|')
         line = self.conn.readline()
         val = self.__read_json(line)
         if ('result' in val):
-            raise NessieError(f"Failure reading initial configuration: {val['msg']}")
+            raise NessieError(f"Failure reading initial configuration: {val['msg']} out of input: {line}")
         return val
 
     def read_state(self):
@@ -56,7 +55,7 @@ class NessieHardware():
         line = self.conn.readline()
         val = self.__read_json(line)
         if ('result' in val):
-            raise NessieError(f"Failure reading state: {val['msg']}")
+            raise NessieError(f"Failure reading state: {val['msg']} out of input: {line}")
 
         return line
     
@@ -82,8 +81,7 @@ def toggle_watering(conn, config, zone_num):
 if __name__ == "__main__":
     formatter = "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.DEBUG, format=formatter)
-    with NessieHardware("./reader", logging) as hw:
-        hw.conn.write(b'TEST|\n')
-        time.sleep(1)
-        print("SENSE")
+    with NessieHardware("/dev/ttyACM0", logging) as hw:
+        hw.read_configuration()
+        time.sleep(3)
         hw.read_state()

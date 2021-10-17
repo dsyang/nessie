@@ -3,6 +3,10 @@
 
 Indoor plant remote watering system for RPi
 
+## Usage
+- Install the arduino sketch
+- `python server.py --serial <file for serial connection> --mqtt <mqtt broker> -- topic_uuid<UUID for mqtt>
+
 ## Server.py
 
 This program listens for mqtt params and communicates with the gpio pins to start/stop water or retrieve moisture sensor data. 

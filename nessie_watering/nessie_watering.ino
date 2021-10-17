@@ -36,7 +36,7 @@ int ZONE_PINS[] = {WATER_PUMP_ZONE_0, WATER_PUMP_ZONE_1, WATER_PUMP_ZONE_2, WATE
 char STATUS_CMD_OUT[] = "Z0(%d)=%d:%d Z1(%d)=%d:%d Z2(%d)=%d:%d Z3(%d)=%d:%d";
 
 char RESPONSE_JSON_OUT_PREFIX[] = "{\"data\":";
-char RESPONSE_JSON_OUT_POSTFIX[] = "}\n";
+char RESPONSE_JSON_OUT_POSTFIX[] = "}";
 char CONIFG_JSON_OUT[] = "{ \
 \"debug_level\":%d, \
 \"num_relay_pins\": %d, \
@@ -54,7 +54,7 @@ char STATUS_JSON_OUT[] = "{ \
 }";
 
 char SENSE_JSON_OUT[] = "{ \
-[ %04d, %04d, %04d, %04d] \
+\"readings\":[ %d, %d, %d, %d] \
 }";
 
 char ZONE_WATER_SUCCESS[] = "200";
