@@ -59,10 +59,7 @@ Communication is done as a JSON wire format.
 - When nessie\_watering receives "SENSE|", it reads moisture sensors and relays that data:
 ```
 {
-    "data": {
-        <sensor_pin>: <reading>,
-        ...
-    }
+    "data": [<number>]
 }
 ```
 - When nessie\_watering receives "ZONE<num>_<0|1>", it toggles that zone to be <0|1> and returns:
