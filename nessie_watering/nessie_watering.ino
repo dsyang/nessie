@@ -25,15 +25,16 @@ int MOISTURE_SENSORS[] = {MOISTURE_SENSOR_ZONE_0, MOISTURE_SENSOR_ZONE_1, MOISTU
 char SENSE_CMD_OUT[] = "%04d %04d %04d %04d";
 
 
-int WATER_PUMP_ZONE_0 = 13;
-int WATER_PUMP_ZONE_1 = 12;
+int WATER_PUMP_ZONE_0 = 7;
+int WATER_PUMP_ZONE_1 = 6;
 int WATER_PUMP_ZONE_2 = 4;
 int WATER_PUMP_ZONE_3 = 5;
 
 int ZONE_PINS[] = { WATER_PUMP_ZONE_0, WATER_PUMP_ZONE_1, WATER_PUMP_ZONE_2, WATER_PUMP_ZONE_3};
-char STATUS_CMD_OUT[] = "%d:%d %d:%d %d:%d %d:%d";
+char STATUS_CMD_OUT[] = "Z0(%d)=%d:%d Z1(%d)=%d:%d Z2(%d)=%d:%d Z3(%d)=%d:%d";
 
-int zoneStates[] = {LOW, LOW, LOW, LOW};
+// High means LED is off
+int zoneStates[] = {HIGH, HIGH, HIGH, HIGH};
 
 String in_buffer;
 String out_buffer;
@@ -76,21 +77,45 @@ void loop() {
       zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], LOW);
     } else if (in_buffer == "ZONE0_1") {
       zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], HIGH);
+    }
 
-    } else if (in_buffer == "ZONE1_0") {
+     else if (in_buffer == "ZONE1_0") {
       zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], LOW);
     } else if (in_buffer == "ZONE1_1") {
       zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], HIGH);
+    }
 
-    } else if (in_buffer == "ZONE2_0") {
+     else if (in_buffer == "ZONE2_0") {
       zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], LOW);
     } else if (in_buffer == "ZONE2_1") {
       zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], HIGH);
+    }
 
-    } else if (in_buffer == "ZONE3_0") {
+     else if (in_buffer == "ZONE3_0") {
       zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], LOW);
     } else if (in_buffer == "ZONE3_1") {
       zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], HIGH);
+    } else if (IS_DEBUG_LEVEL > 1) {
+      if (in_buffer == "z1") {
+	zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], zoneStates[1] == LOW ? HIGH : LOW);
+      } else if (in_buffer == "z2") {
+	zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], zoneStates[2] == LOW ? HIGH : LOW);
+
+      } else if (in_buffer == "z3") {
+	zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], zoneStates[3] == LOW ? HIGH : LOW);
+      
+      } else if (in_buffer == "z0") {
+	zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], zoneStates[0] == LOW ? HIGH : LOW);
+      }
+
+    }
+
+
+
+    if(out_buffer != "" && IS_DEBUG_LEVEL > 1) {
+      writeSerialPort();
+      delay(10);
+      readZones();
     }
   }
 
@@ -151,7 +176,14 @@ void readZones() {
   }
 
   char resp[100];
-  snprintf(resp, sizeof(resp), STATUS_CMD_OUT, zoneStates[0], currentPinVal[0], zoneStates[1], currentPinVal[1], zoneStates[2], currentPinVal[2], zoneStates[3], currentPinVal[3]);
+  snprintf(
+    resp, 
+    sizeof(resp),
+    STATUS_CMD_OUT,
+    ZONE_PINS[0], zoneStates[0], currentPinVal[0],
+    ZONE_PINS[1], zoneStates[1], currentPinVal[1],
+    ZONE_PINS[2], zoneStates[2], currentPinVal[2],
+    ZONE_PINS[3], zoneStates[3], currentPinVal[3]);
   out_buffer += resp;
 }
 
