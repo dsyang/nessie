@@ -18,12 +18,6 @@ where <> is:
 - "moisture": data is `{"zone": int}`. Publishes moisture sensor reading for zone. If `zone == -1` the publishes moisture sensor deading for all zones as a single mqtt message.
 - "debug": publishes current app state. 
 
-## Moisture.py
-
-This program periodically sends MQTT commands to `Server.py` to read moisture sensor data and publish it to an airtable table. 
-
-If moisture sensor data for a single zone is too high, it will issue a stop command for that zone.
-
 ## nessie\_watering
 
 This is an arduino sketch used to control the hardware for watering: the capacitive sensors for reading soil moisture and the relays for controlling the water pumps.
@@ -37,3 +31,48 @@ arduino-cli upload -p <port> --fqbn arduino:avr:uno nessie_watering
 
 port is found once the arduino is connected via:
 `arduino-cli board list`
+
+## nessie\_watering API spec:
+Communication is done as a JSON wire format.
+- On serial connection, print configuration information:
+```
+{ 
+    "data": {
+        "debug_level": number, 
+        "num_pins": number, 
+        "solenoid_pin": number,
+        "num_sensors": number, 
+        "sensor_wet": number,
+        "sensor_dry": number,
+    }
+}
+```
+- When nessie\_watering receives "STATUS|", it returns the internal state of relay gpio values:
+```
+{
+    "data": {
+        <pin>: [<internal state>, <ditigal read>],
+        ...
+    }
+}
+```
+- When nessie\_watering receives "SENSE|", it reads moisture sensors and relays that data:
+```
+{
+    "data": {
+        <sensor_pin>: <reading>,
+        ...
+    }
+}
+```
+- When nessie\_watering receives "ZONE<num>_<0|1>", it toggles that zone to be <0|1> and returns:
+```
+{ "data": <200|304>} // 200 means set properly, 304 means no change
+```
+
+
+## Moisture.py
+
+This program periodically sends MQTT commands to `Server.py` to read moisture sensor data and publish it to an airtable table. 
+
+If moisture sensor data for a single zone is too high, it will issue a stop command for that zone.
