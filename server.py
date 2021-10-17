@@ -3,11 +3,12 @@ import traceback
 import time
 import json
 import paho.mqtt.client as mqtt
+import hardware
+
+from utils import NessieError
+from hardware import NessieHardware
 
 UUID = '7ee6f9fa-c7b4-4427-b441-c9d00897f33e'
-
-class NessieError(Exception):
-    """ Class for exceptions from this app"""
 
 def subscribe_topics():
     """Subscribe to these topics to receive commands to start / stop water. Report soil moisture. And report app state.
@@ -92,15 +93,24 @@ def on_message(client, userdata, msg):
         handle_command(client, msg.payload)
         return
 
-if __name__ == '__main__':
-    formatter = "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
-    logging.basicConfig(level=logging.DEBUG, format=formatter)
+def init_mqtt():
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_subscribe = on_subscribe
     client.on_publish = on_publish
     client.on_message = on_message
-    
-    
+
     client.connect("broker.emqx.io", 1883, 60)
-    client.loop_forever()
+    return client
+
+
+if __name__ == '__main__':
+    formatter = "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
+    logging.basicConfig(level=logging.DEBUG, format=formatter)
+    client = init_mqtt()
+    with NessieHardware('./reader', logging) as hw: 
+        client.start_loop()
+        while True:
+            pass
+        client.stop_loop()
+
