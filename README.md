@@ -5,7 +5,7 @@ Indoor plant remote watering system for RPi
 
 ## Usage
 - Install the arduino sketch
-- `python server.py --serial <file for serial connection> --mqtt <mqtt broker> -- topic_uuid<UUID for mqtt>
+- `python nessie.py --arduino <file for serial connection> [--mqtt <mqtt broker url>] [--uuid <UUID for mqtt>]`
 
 ## Server.py
 

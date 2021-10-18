@@ -9,109 +9,113 @@ import argparse
 from utils import NessieError
 from hardware import NessieHardware
 
-UUID = '7ee6f9fa-c7b4-4427-b441-c9d00897f33e'
 
-def subscribe_topics():
-    """Subscribe to these topics to receive commands to start / stop water. Report soil moisture. And report app state.
-    """
-    return f"{UUID}/nessie/subscribe"
+class NessieMqttClient:
+    def __init__(self, hw, logger, uuid, broker_url):
+        self.hw = hw
+        self.logger = logger
 
-def publish_topic():
-    """Publish on this topic to report watering start/stop, report soil moisture, report app state.
-    """
-    return f"{UUID}/nessie/publish"
+        self.uuid = uuid
+        self.publish_topic = f"{uuid}/nessie/publish"
+        self.subscribe_topic = f"{uuid}/nessie/subscribe"
 
-def ok_payload(msg):
-    timestamp_ms = int(time.time()*1000)
-    output = f"{{ 'status': 'ok', 'msg': '{msg}', 'timestamp_ms':{timestamp_ms} }}"
-    return output
+        self.broker_url = broker_url
 
-def error_payload(error):
-    timestamp_ms = int(time.time()*1000)
-    output= f"{{ 'status': 'error', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
-    return output
+        self.mqtt = mqtt.Client()
+        self.mqtt.on_connect = self.__on_connect
+        self.mqtt.on_subscribe = self.__on_subscribe
+        self.mqtt.on_publish = self.__on_publish
+        self.mqtt.on_message = self.__on_message
 
-def send(payload):
-    mid = client.publish(publish_topic(), payload=payload)
-    logging.info(f"PUB {publish_topic()}: {mid}, payload={payload}")
-    
+    def __enter__(self):
+        self.mqtt.connect(self.broker_url)
+        self.mqtt.loop_start()
+        return self
 
-def handle_command(client, data):
-    try:
-        payload = json.loads(data)
-        cmd = payload['cmd']
-        resp = None
-        if cmd == 'start':
-            resp = ok_payload('started')
-        elif cmd == 'stop':
-            resp = ok_payload('stopped')
-        elif cmd == 'moisture':
-            resp = ok_payload('moisture levels:')
-        elif cmd == 'debug':
-            resp = ok_payload('app_state:')
-        elif cmd == 'DIE':
-            resp = ok_payload('shutting down')
+    def __exit__(self, type, value, traceback):
+        self.mqtt.loop_stop()
+
+    def ok_payload(self, msg):
+        timestamp_ms = int(time.time() * 1000)
+        output = f"{{ 'status': 'ok', 'msg': '{msg}', 'timestamp_ms':{timestamp_ms} }}"
+        return output
+
+    def error_payload(self, error):
+        timestamp_ms = int(time.time() * 1000)
+        output = (
+            f"{{ 'status': 'error', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
+        )
+        return output
+
+    def send(self, payload):
+        mid = self.mqtt.publish(self.publish_topic, payload=payload)
+        self.logger.info(f"PUB {self.publish_topic}: {mid}, payload={payload}")
+
+    def handle_command(self, data):
+        try:
+            payload = json.loads(data)
+            cmd = payload["cmd"]
+            resp = None
+            if cmd == "start":
+                resp = self.ok_payload("started")
+            elif cmd == "stop":
+                resp = self.ok_payload("stopped")
+            elif cmd == "moisture":
+                resp = self.ok_payload("moisture levels:")
+            elif cmd == "debug":
+                resp = self.ok_payload("app_state:")
+            elif cmd == "DIE":
+                resp = self.ok_payload("shutting down")
+            else:
+                msg = f"Invalid payload received: {data}"
+                raise NessieError(msg)
+            if resp is not None:
+                self.send(resp)
+            else:
+                self.send(self.error_payload("no response payload"))
+
+        except NessieError as err:
+            msg = traceback.format_exc()
+            self.logger.error(msg)
+            self.send(self.error_payload(f"App Error: {msg}"))
+
+        except Exception as err:
+            msg = traceback.format_exc()
+            self.logger.error(msg)
+            self.send(self.error_payload(f"Python Error: {msg}"))
+
+    def __on_connect(self, client, userdata, flags, rc):
+        """Callback function called when connected"""
+        self.logger.info(f"CONN: {rc}")
+        mid = self.mqtt.subscribe(self.subscribe_topic)
+        self.logger.info(f"SUB {self.subscribe_topic}: {mid}")
+
+    def __on_subscribe(self, client, userdata, mid, granted_qos):
+        """Callback function called when broker confirms we're subscribed. mid is the value returned from client.subscribe()"""
+        self.logger.info(f"SUB_ACK: {mid}")
+
+    def __on_publish(self, client, userdata, mid):
+        """Callback function called when broker confirms message was transmitted."""
+        self.logger.info(f"PUB_ACK: {mid}")
+
+    def __on_message(self, client, userdata, msg):
+        """Callback function called when we received a message"""
+        self.logger.info(f"RECV {msg.topic}, payload = {str(msg.payload)}")
+        if msg.topic != self.subscribe_topic:
+            self.logger.error(f"No handler for topic {msg.topic}")
+            return
         else:
-            msg =f"Invalid payload received: {data}" 
-            raise NessieError(msg)
-        if (resp is not None):
-            send(resp)
-        else:
-            send(error_payload("no response payload"))
-
-    except NessieError as err:
-        msg = traceback.format_exc()
-        logging.error(msg)
-        send(error_payload(f"App Error: {msg}"))
-        
-    except Exception as err:
-        msg = traceback.format_exc()
-        logging.error(msg)
-        send(error_payload(f"Python Error: {msg}"))
+            self.handle_command(msg.payload)
+            return
 
 
-def on_connect(client, userdata, flags, rc):
-    """ Callback function called when connected"""
-    logging.info(f"CONN: {rc}")
-    mid = client.subscribe(subscribe_topics())
-    logging.info(f"SUB {subscribe_topics()}: {mid}")
-
-def on_subscribe(client, userdata, mid, granted_qos):
-    """ Callback function called when broker confirms we're subscribed. mid is the value returned from client.subscribe()"""
-    logging.info(f"SUB_ACK: {mid}")
-
-def on_publish(client, userdata, mid):
-    """ Callback function called when broker confirms message was transmitted."""
-    logging.info(f"PUB_ACK: {mid}")
-
-def on_message(client, userdata, msg):
-    """ Callback function called when we received a message"""
-    logging.info(f"RECV {msg.topic}, payload = {str(msg.payload)}")
-    if (msg.topic != subscribe_topics()):
-        logging.error(f"No handler for topic {msg.topic}")
-        return
-    else:
-        handle_command(client, msg.payload)
-        return
-
-def init_mqtt():
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_subscribe = on_subscribe
-    client.on_publish = on_publish
-    client.on_message = on_message
-
-    client.connect("broker.emqx.io", 1883, 60)
-    return client
-
-
-if __name__ == '__main__':
-    formatter = "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
+if __name__ == "__main__":
+    formatter = (
+        "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
+    )
     logging.basicConfig(level=logging.DEBUG, format=formatter)
-    client = init_mqtt()
-    with NessieHardware('./reader', logging) as hw: 
-        client.start_loop()
+    with NessieMqttClient(
+        hw=None, logger=logging, broker_url="broker.emqx.io", uuid="dsyangtest"
+    ) as client:
         while True:
             pass
-        client.stop_loop()
-
