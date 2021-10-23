@@ -27,6 +27,8 @@ class NessieMqttClient:
         self.mqtt.on_publish = self.__on_publish
         self.mqtt.on_message = self.__on_message
 
+        self.hw_config = hw.read_configuration()
+
     def __enter__(self):
         self.mqtt.connect(self.broker_url)
         self.mqtt.loop_start()
@@ -114,8 +116,10 @@ if __name__ == "__main__":
         "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
     )
     logging.basicConfig(level=logging.DEBUG, format=formatter)
-    with NessieMqttClient(
-        hw=None, logger=logging, broker_url="broker.emqx.io", uuid="dsyangtest"
-    ) as client:
-        while True:
-            pass
+
+    with NessieHardware("/dev/ttyACM0", logging) as hw:
+        with NessieMqttClient(
+            hw=hw, logger=logging, broker_url="broker.emqx.io", uuid="dsyangtest"
+        ) as client:
+            while True:
+                pass
