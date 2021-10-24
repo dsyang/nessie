@@ -31,7 +31,6 @@ class NessieMqttClient:
 
     def __enter__(self):
         self.mqtt.connect(self.broker_url)
-        self.mqtt.loop_start()
         return self
 
     def __exit__(self, type, value, traceback):
@@ -121,5 +120,4 @@ if __name__ == "__main__":
         with NessieMqttClient(
             hw=hw, logger=logging, broker_url="broker.emqx.io", uuid="dsyangtest"
         ) as client:
-            while True:
-                pass
+            client.mqtt.loop_forever()

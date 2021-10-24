@@ -32,5 +32,4 @@ if __name__ == "__main__":
         with NessieMqttClient(
             hw, logging, uuid=arguments.uuid, broker_url=arguments.mqtt
         ) as client:
-            while True:
-                pass
+            client.mqtt.loop_forever()
