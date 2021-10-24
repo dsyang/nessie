@@ -120,4 +120,8 @@ if __name__ == "__main__":
         with NessieMqttClient(
             hw=hw, logger=logging, broker_url="broker.emqx.io", uuid="dsyangtest"
         ) as client:
+            time.sleep(0.5)
+            client.send("OLLLLL")
+            client.send('HAIIIII')
+            client.send('{"cmd": "asdfasdf", "payload": true}')
             client.mqtt.loop_forever()
