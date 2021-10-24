@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react';
 import Connection from './Connection';
 import Publisher from './Publisher';
-import Subscriber from './Subscriber';
 import Receiver from './Receiver';
 import mqtt from 'mqtt';
 
@@ -20,14 +19,17 @@ const qosOption = [
 ];
 
 const HookMqtt = () => {
+  const [clientId, setClientId] = useState(`nessie_js_${Math.random().toString(16).substr(2, 8)}`)
   const [client, setClient] = useState(null);
   const [isSubed, setIsSub] = useState(false);
   const [payload, setPayload] = useState({});
   const [connectStatus, setConnectStatus] = useState('Connect');
 
   const mqttConnect = (host, mqttOption) => {
-    setConnectStatus('Connecting');
-    setClient(mqtt.connect(host, mqttOption));
+    if (client === null || !client.connected) {
+      setConnectStatus('Connecting');
+      setClient(mqtt.connect(host, mqttOption));
+    }
   };
 
   useEffect(() => {
@@ -69,7 +71,7 @@ const HookMqtt = () => {
   }
 
   const mqttSub = (subscription) => {
-    if (client) {
+    if (client && !client.disconnecting) {
       const { topic, qos } = subscription;
       client.subscribe(topic, { qos }, (error) => {
         if (error) {
@@ -95,9 +97,15 @@ const HookMqtt = () => {
   };
   return (
     <>
-      <Connection connect={mqttConnect} disconnect={mqttDisconnect} connectBtn={connectStatus} />
+      <Connection
+        clientId={clientId}
+        connect={mqttConnect}
+        disconnect={mqttDisconnect}
+        connectBtn={connectStatus}
+        subscribe={mqttSub}
+        unsubscribe={mqttUnSub}
+        isSubed={isSubed}/>
       <QosOption.Provider value={qosOption}>
-        <Subscriber sub={mqttSub} unSub={mqttUnSub} showUnsub={isSubed} />
         <Publisher publish={mqttPublish} />
       </QosOption.Provider>
       <Receiver payload={payload} />
