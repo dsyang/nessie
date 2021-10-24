@@ -44,7 +44,7 @@ const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsu
 
   const subscriptionArgs = {
     shouldSubscribe: isConnected && !isSubed,
-    topic: subTopic
+    topic: `${topicUUID}/${subTopic}`
   }
 
   useEffect( () => {
@@ -53,7 +53,7 @@ const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsu
     }
   }, [subscriptionArgs, subscribe]);
 
-  const statusText = !isConnected ? "Not Connected." : (isSubed ? "Ready" : "Not Subscribed.")
+  const statusText = !isConnected ? "Not Connected." : (isSubed ? `Listening to ${subscriptionArgs.topic}` : "Not Subscribed.")
   const ConnectionInfo = (
     <Form
       layout="vertical"

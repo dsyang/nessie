@@ -19,7 +19,7 @@ const qosOption = [
 ];
 
 const HookMqtt = () => {
-  const [clientId, setClientId] = useState(`nessie_js_${Math.random().toString(16).substr(2, 8)}`)
+  const [clientId, _] = useState(`nessie_js_${Math.random().toString(16).substr(2, 8)}`)
   const [client, setClient] = useState(null);
   const [isSubed, setIsSub] = useState(false);
   const [payload, setPayload] = useState({});
@@ -46,6 +46,7 @@ const HookMqtt = () => {
       });
       client.on('message', (topic, message) => {
         const payload = { topic, message: message.toString() };
+        console.log(payload);
         setPayload(payload);
       });
     }
@@ -78,6 +79,7 @@ const HookMqtt = () => {
           console.log('Subscribe to topics error', error)
           return
         }
+        console.log(`Subscribed to ${topic}`);
         setIsSub(true)
       });
     }
