@@ -19,7 +19,7 @@ const qosOption = [
 ];
 
 const HookMqtt = () => {
-  const [clientId, _] = useState(`nessie_js_${Math.random().toString(16).substr(2, 8)}`)
+  const [clientId] = useState(`nessie_js_${Math.random().toString(16).substr(2, 8)}`)
   const [client, setClient] = useState(null);
   const [isSubed, setIsSub] = useState(false);
   const [payload, setPayload] = useState({});

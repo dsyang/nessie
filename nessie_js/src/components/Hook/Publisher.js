@@ -9,7 +9,7 @@ const Publisher = ({ publish }) => {
   const qosOptions = useContext(QosOption);
 
   const record = {
-    topic: 'testtopic/react',
+    topic: 'dsyangtest/nessie/subscribe',
     qos: 0,
   };
 
