@@ -1,3 +1,4 @@
+from json.decoder import JSONDecodeError
 import logging
 import traceback
 import time
@@ -36,15 +37,15 @@ class NessieMqttClient:
     def __exit__(self, type, value, traceback):
         self.mqtt.loop_stop()
 
-    def ok_payload(self, msg):
+    def ok_payload(self, cmd, msg):
         timestamp_ms = int(time.time() * 1000)
-        output = f"{{ 'status': 'ok', 'msg': '{msg}', 'timestamp_ms':{timestamp_ms} }}"
+        output = f"{{ 'status': 'ok', 'cmd': '{cmd}', msg': '{msg}', 'timestamp_ms':{timestamp_ms} }}"
         return output
 
-    def error_payload(self, error):
+    def error_payload(self, cmd, error):
         timestamp_ms = int(time.time() * 1000)
         output = (
-            f"{{ 'status': 'error', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
+            f"{{ 'status': 'error', 'cmd': '{cmd}', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
         )
         return output
 
@@ -58,32 +59,39 @@ class NessieMqttClient:
             cmd = payload["cmd"]
             resp = None
             if cmd == "start":
-                resp = self.ok_payload("started")
+                resp = self.ok_payload(cmd, "started")
             elif cmd == "stop":
-                resp = self.ok_payload("stopped")
+                resp = self.ok_payload(cmd, "stopped")
             elif cmd == "moisture":
-                resp = self.ok_payload("moisture levels:")
-            elif cmd == "debug":
-                resp = self.ok_payload("app_state:")
+                resp = self.ok_payload(cmd, "moisture levels:")
+            elif cmd == "status":
+                val = self.hw.read_state()
+                resp = self.ok_payload(cmd, str(val['data']))
             elif cmd == "DIE":
-                resp = self.ok_payload("shutting down")
+                resp = self.ok_payload(cmd, "shutting down")
+            elif cmd == "config":
+                resp = self.ok_payload(cmd, str(self.hw.config))
             else:
                 msg = f"Invalid payload received: {data}"
                 raise NessieError(msg)
             if resp is not None:
                 self.send(resp)
             else:
-                self.send(self.error_payload("no response payload"))
+                self.send(self.error_payload(cmd, "no response payload"))
 
         except NessieError as err:
             msg = traceback.format_exc()
             self.logger.error(msg)
-            self.send(self.error_payload(f"App Error: {msg}"))
+            self.send(self.error_payload("NessieError", f"{msg}"))
 
+        except JSONDecodeError as err:
+            msg = traceback.format_exc()
+            self.logger.error(msg)
+            self.send(self.error_payload("JSONDecodeError", f"When decoding {data} \n {msg}"))
         except Exception as err:
             msg = traceback.format_exc()
             self.logger.error(msg)
-            self.send(self.error_payload(f"Python Error: {msg}"))
+            self.send(self.error_payload("PythonError", f"{msg}"))
 
     def __on_connect(self, client, userdata, flags, rc):
         """Callback function called when connected"""
