@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Button, Form, Typography, Divider } from 'antd';
 const { Paragraph } = Typography;
 
-const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsubscribe, isSubed}) => {
+const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsubscribe, isSubscribed }) => {
   const isConnected = connectBtn === 'Connected';
   const [form] = Form.useForm();
   const record = {
@@ -30,7 +30,7 @@ const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsu
       rejectUnauthorized: false,
       clientId: clientId
     };
-    connect(url, options);
+    connect(url, options, `${topicUUID}/nessie/subscribe`);
   };
 
   const handleConnect = () => {
@@ -38,22 +38,22 @@ const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsu
   };
 
   const handleDisconnect = () => {
-    unsubscribe({topic: subTopic})
+    unsubscribe({ topic: subTopic })
     disconnect();
   };
 
   const subscriptionArgs = {
-    shouldSubscribe: isConnected && !isSubed,
+    shouldSubscribe: isConnected && !isSubscribed,
     topic: `${topicUUID}/${subTopic}`
   }
 
-  useEffect( () => {
+  useEffect(() => {
     if (subscriptionArgs.shouldSubscribe) {
-      subscribe({ topic: subscriptionArgs.topic, qos: 0})
+      subscribe({ topic: subscriptionArgs.topic, qos: 0 })
     }
   }, [subscriptionArgs, subscribe]);
 
-  const statusText = !isConnected ? "Not Connected." : (isSubed ? `Listening to ${subscriptionArgs.topic}` : "Not Subscribed.")
+  const statusText = !isConnected ? "Not Connected." : (isSubscribed ? `Listening to ${subscriptionArgs.topic}` : "Not Subscribed.")
   const ConnectionInfo = (
     <Form
       layout="vertical"
@@ -66,10 +66,10 @@ const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsu
         <Paragraph> Broker: {record.host}:{record.port}</Paragraph>
         <Paragraph> ClientId: {clientId}</Paragraph>
         <Typography.Text>UUID: </Typography.Text>
-        <Typography.Text editable={{onChange: setTopicUUID}}>{topicUUID}</Typography.Text>
+        <Typography.Text editable={{ onChange: setTopicUUID }}>{topicUUID}</Typography.Text>
         <Paragraph></Paragraph>
         <Typography.Text>Read msgs from: {topicUUID}/</Typography.Text>
-        <Typography.Text editable={{onChange: setSubTopic}}>{subTopic}</Typography.Text>
+        <Typography.Text editable={{ onChange: setSubTopic }}>{subTopic}</Typography.Text>
         <Divider />
         <Paragraph>{statusText}</Paragraph>
       </Typography>

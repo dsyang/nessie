@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import Connection from './Connection';
 import Publisher from './Publisher';
 import Receiver from './Receiver';
+import Stats, { readConfig } from './Stats';
 import mqtt from 'mqtt';
 
 export const QosOption = createContext([])
@@ -21,14 +22,16 @@ const qosOption = [
 const HookMqtt = () => {
   const [clientId] = useState(`nessie_js_${Math.random().toString(16).substr(2, 8)}`)
   const [client, setClient] = useState(null);
-  const [isSubed, setIsSub] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const [payload, setPayload] = useState({});
   const [connectStatus, setConnectStatus] = useState('Connect');
+  const [publishTopic, setPublishTopic] = useState('');
 
-  const mqttConnect = (host, mqttOption) => {
+  const mqttConnect = (host, mqttOption, publishTopic) => {
     if (client === null || !client.connected) {
       setConnectStatus('Connecting');
       setClient(mqtt.connect(host, mqttOption));
+      setPublishTopic(publishTopic);
     }
   };
 
@@ -80,7 +83,7 @@ const HookMqtt = () => {
           return
         }
         console.log(`Subscribed to ${topic}`);
-        setIsSub(true)
+        setIsSubscribed(true)
       });
     }
   };
@@ -93,10 +96,32 @@ const HookMqtt = () => {
           console.log('Unsubscribe error', error)
           return
         }
-        setIsSub(false);
+        setIsSubscribed(false);
       });
     }
   };
+
+  const exConfig = { 'debug_level': 0, 'num_relay_pins': 4, 'solenoid_pin': 7, 'num_sensors': 4, 'sensor_wet': 700, 'sensor_dry': 810 }
+  const exStats = { 'data': { '7': [1, 1], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
+  const exSensors = { 'data': { '7': [0, 0], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
+  const requestConfig = () => {
+    mqttPublish({
+      topic: publishTopic,
+      qos: 0,
+      payload: JSON.stringify({
+        cmd: "config",
+      })
+    });
+  }
+  const requestZonesReading = () => {
+    mqttPublish({
+      topic: publishTopic,
+      qos: 0,
+      payload: JSON.stringify({
+        cmd: "status",
+      })
+    })
+  }
   return (
     <>
       <Connection
@@ -106,9 +131,17 @@ const HookMqtt = () => {
         connectBtn={connectStatus}
         subscribe={mqttSub}
         unsubscribe={mqttUnSub}
-        isSubed={isSubed}/>
+        isSubscribed={isSubscribed} />
+      {!isSubscribed ? null :
+        <Stats
+          config={JSON.stringify(exConfig)}
+          stats={JSON.stringify(exStats)}
+          exSensors={JSON.stringify(exSensors)}
+          requestConfig={requestConfig}
+          requestZonesReading={requestZonesReading}
+        />}
       <QosOption.Provider value={qosOption}>
-        <Publisher publish={mqttPublish} />
+        <Publisher publish={mqttPublish} isConnected={connectStatus === "Connected"} />
       </QosOption.Provider>
       <Receiver payload={payload} />
     </>
