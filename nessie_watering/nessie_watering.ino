@@ -112,7 +112,10 @@ void loop()
       writeConfig();
     }
 
-    if (in_buffer == "SENSE")
+    if (in_buffer == "STOP") {
+      stopAllWatering();
+    }
+    else if (in_buffer == "SENSE")
     {
       readMoistureSensors();
     }
@@ -303,6 +306,17 @@ int water(int pin, int currentPinState, int newPinState)
     out_buffer += RESPONSE_JSON_OUT_POSTFIX;
     return newPinState;
   }
+}
+
+/**
+ * Stops all watering
+ */
+void stopAllWatering() {
+  for (int i = 0; i < NUM_ZONES; i++)
+  {
+    digitalWrite(ZONE_PINS[i], HIGH);
+  }
+  readZones();
 }
 
 void readSerialPortUntil()

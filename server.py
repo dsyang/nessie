@@ -44,9 +44,7 @@ class NessieMqttClient:
 
     def error_payload(self, cmd, error):
         timestamp_ms = int(time.time() * 1000)
-        output = (
-            f"{{ 'status': 'error', 'cmd': '{cmd}', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
-        )
+        output = f"{{ 'status': 'error', 'cmd': '{cmd}', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
         return output
 
     def send(self, payload):
@@ -59,16 +57,31 @@ class NessieMqttClient:
             cmd = payload["cmd"]
             resp = None
             if cmd == "start":
-                resp = self.ok_payload(cmd, "started")
+                zone_num = int(payload["data"]["zone"])
+                val = self.hw.start_watering(zone_num)
+
+                if val["data"] == 200:
+                    resp = self.ok_payload(cmd, f"started zone {zone_num}")
+                else:
+                    resp = self.ok_payload(cmd, f"zone {zone_num} already started")
             elif cmd == "stop":
-                resp = self.ok_payload(cmd, "stopped")
+                zone_num = int(payload["data"]["zone"])
+                val = self.hw.stop_watering(zone_num)
+
+                if val["data"] == 200:
+                    resp = self.ok_payload(cmd, f"started zone {zone_num}")
+                else:
+                    resp = self.ok_payload(cmd, f"zone {zone_num} already started")
             elif cmd == "moisture":
-                resp = self.ok_payload(cmd, "moisture levels:")
+                val = self.hw.read_moisture_sensors()
+                resp = self.ok_payload(cmd, f"moisture levels: {val['data']}")
             elif cmd == "status":
                 val = self.hw.read_state()
-                resp = self.ok_payload(cmd, str(val['data']))
-            elif cmd == "DIE":
+                resp = self.ok_payload(cmd, str(val["data"]))
+            elif cmd == "STOPALL":
                 resp = self.ok_payload(cmd, "shutting down")
+                val = self.hw.stop_all()
+                resp = self.ok_payload(cmd, "stopped all watering zones")
             elif cmd == "config":
                 resp = self.ok_payload(cmd, str(self.hw.config))
             else:
@@ -87,7 +100,9 @@ class NessieMqttClient:
         except JSONDecodeError as err:
             msg = traceback.format_exc()
             self.logger.error(msg)
-            self.send(self.error_payload("JSONDecodeError", f"When decoding {data} \n {msg}"))
+            self.send(
+                self.error_payload("JSONDecodeError", f"When decoding {data} \n {msg}")
+            )
         except Exception as err:
             msg = traceback.format_exc()
             self.logger.error(msg)
@@ -130,6 +145,6 @@ if __name__ == "__main__":
         ) as client:
             time.sleep(0.5)
             client.send("OLLLLL")
-            client.send('HAIIIII')
+            client.send("HAIIIII")
             client.send('{"cmd": "asdfasdf", "payload": true}')
             client.mqtt.loop_forever()

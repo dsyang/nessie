@@ -20,7 +20,7 @@ class NessieHardware:
 
     def __enter__(self):
         time.sleep(0.5)
-        self.config = self.read_configuration()['data']
+        self.config = self.read_configuration()["data"]
         return self
 
     def __exit__(self, type, value, traceback):
@@ -50,7 +50,7 @@ class NessieHardware:
         """
         START_VAL = 0
         STOP_VAL = 1
-        num_relay_pins = self.config['num_relay_pins']
+        num_relay_pins = self.config["num_relay_pins"]
         if zone_num < num_relay_pins:
             cmd = f"ZONE{zone_num}_{START_VAL if start_watering else STOP_VAL}|"
             self.conn.write(cmd.encode())
@@ -96,8 +96,8 @@ class NessieHardware:
         self.conn.write(b"SENSE|")
         line = self.conn.readline()
         val = self.__read_json_or_throw(line, "Failure reading sensors")
-        val['wet_limit'] = self.config['sensor_wet']
-        val['dry_limit'] = self.config['sensor_dry']
+        val["wet_limit"] = self.config["sensor_wet"]
+        val["dry_limit"] = self.config["sensor_dry"]
         return val
 
     def start_watering(self, zone_num):
@@ -105,6 +105,12 @@ class NessieHardware:
 
     def stop_watering(self, zone_num):
         return self.__water_zone(zone_num, start_watering=False)
+
+    def stop_all(self):
+        self.conn.write(b"STOP|")
+        line = self.conn.readline()
+        val = self.__read_json_or_throw(line, "Failure stopping all watering")
+        return val
 
 
 if __name__ == "__main__":
