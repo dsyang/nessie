@@ -315,6 +315,7 @@ void stopAllWatering() {
   for (int i = 0; i < NUM_ZONES; i++)
   {
     digitalWrite(ZONE_PINS[i], HIGH);
+    zoneStates[i] = HIGH;
   }
   readZones();
 }
