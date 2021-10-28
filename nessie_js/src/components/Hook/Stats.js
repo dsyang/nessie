@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, Form, Input, Row, Col, Button, Select } from 'antd';
+import React from 'react';
+import { Card, Button } from 'antd';
 import { Typography, } from 'antd';
 
 const { Paragraph, } = Typography;
@@ -24,9 +24,4 @@ const Stats = ({ config, requestConfig, sensors, requestSensorsReading, zones, r
     )
 }
 
-const readConfig = () => {
-    console.log("LOLHI");
-}
-
-export { readConfig };
 export default Stats;

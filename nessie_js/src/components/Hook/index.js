@@ -3,7 +3,7 @@ import Connection from './Connection';
 import Publisher from './Publisher';
 import Receiver from './Receiver';
 import Stats from './Stats';
-import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading} from './api';
+import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading } from './api';
 import { INITIAL_VIEW_MODEL, handleNewMessage } from './lib';
 import mqtt from 'mqtt';
 
@@ -50,14 +50,35 @@ const HookMqtt = () => {
       client.on('reconnect', () => {
         setConnectStatus('Reconnecting');
       });
+    }
+  }, [client]);
+
+  useEffect(() => {
+    if (client) {
+      client.removeAllListeners('message');
       client.on('message', (topic, message) => {
         const payload = { topic, message: message.toString() };
         console.log(payload);
-        handleNewMessage(JSON.parse(message), viewModel, setViewModel);
+        let msg_json = ""
+        let did_error = false;
+        try {
+          msg_json = JSON.parse(message)
+        } catch (objError) {
+          did_error = true;
+          if (objError instanceof SyntaxError) {
+            console.error(objError.name);
+          } else {
+            console.error(objError.message);
+          }
+        }
+
+        if (!did_error) {
+          handleNewMessage(msg_json, viewModel, setViewModel);
+        }
         setPayload(payload);
       });
     }
-  }, [client]);
+  }, [client, viewModel]);
 
   const mqttDisconnect = () => {
     if (client) {

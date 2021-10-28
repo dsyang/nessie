@@ -1,5 +1,6 @@
 import { COMMANDS } from "./api";
 
+const IS_ON = 0;
 export const INITIAL_VIEW_MODEL = {
     configuration: {
         // debug_level: 0-2,
@@ -13,7 +14,9 @@ export const INITIAL_VIEW_MODEL = {
             // pin: 7,
             // state: {
             //   is_on: bool,
+            //   app_state_minus_digital_read: int,
             //   last_changed_timestamp_ms: int
+            //   last_read_timestamp_ms: int
             // }
             // moisture_sensor_index: 0
         }
@@ -28,15 +31,15 @@ export const INITIAL_VIEW_MODEL = {
 
 export function handleNewMessage(payload, currentViewModel, setViewModel) {
     if (payload.status === "ok") {
-        switch(payload.cmd) {
+        switch (payload.cmd) {
             case COMMANDS.config:
-                handleConfigCommandResponse(payload.msg, currentViewModel, setViewModel);
+                handleConfigCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.moisture_sensors:
                 handleReadSensorsCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.status:
-                handleStatusCommandResponse(payload.msg, currentViewModel, setViewModel);
+                handleStatusCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.stopall:
                 console.log("STOPPPPP")
@@ -56,14 +59,15 @@ export function handleNewMessage(payload, currentViewModel, setViewModel) {
 }
 
 function handleConfigCommandResponse(payload, currentViewModel, setViewModel) {
+    const values = payload.msg
     const newViewModel = {
         ...currentViewModel,
         configuration: {
-            debug_level: payload.debug_level,
-            num_zones: payload.num_relay_pins,
-            num_sensors: payload.num_sensors,
-            sensor_wet_limit: payload.sensor_wet,
-            sensor_dry_limit: payload.sensor_dry,
+            debug_level: values.debug_level,
+            num_zones: values.num_relay_pins,
+            num_sensors: values.num_sensors,
+            sensor_wet_limit: values.sensor_wet,
+            sensor_dry_limit: values.sensor_dry,
         }
     }
     setViewModel(newViewModel);
@@ -87,10 +91,28 @@ function handleReadSensorsCommandResponse(payload, currentViewModel, setViewMode
 
 function handleStatusCommandResponse(payload, currentViewModel, setViewModel) {
     console.log(payload)
-    const exStats = { 'data': { '7': [1, 1], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
+
+    const last_read_timestamp_ms = payload.timestamp_ms
+    const zones = payload.msg.map((zone, idx) => {
+        let last_changed_timestamp_ms = 0;
+        if (currentViewModel.zones[idx] && currentViewModel.zones[idx].state) {
+            last_changed_timestamp_ms = currentViewModel.zones[idx].state.last_changed_timestamp_ms
+        }
+        return {
+            pin: zone[0],
+            state: {
+                is_on: zone[1] === IS_ON,
+                app_state_minus_digital_read: zone[1] - zone[2],
+                last_changed_timestamp_ms,
+                last_read_timestamp_ms
+            },
+            moisture_sensor_index: zone[3]
+        }
+    })
+
     const newViewModel = {
         ...currentViewModel,
-        zones: []
+        zones,
     }
     setViewModel(newViewModel);
 }
