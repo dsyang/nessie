@@ -11,9 +11,9 @@ const Stats = ({ config, requestConfig, sensors, requestSensorsReading, zones, r
             title="Stats"
         >
             <Typography>
-                <Paragraph>Config: {config}</Paragraph>
-                <Paragraph>Sensor Readings: {sensors}</Paragraph>
-                <Paragraph>Current Zone Readings: {zones}</Paragraph>
+                <Paragraph>Config: {JSON.stringify(config)}</Paragraph>
+                <Paragraph>Sensor Readings: {JSON.stringify(sensors)}</Paragraph>
+                <Paragraph>Zone Readings: {JSON.stringify(zones)}</Paragraph>
                 <Paragraph>
                     <Button onClick={requestConfig}>{"Read Config"}</Button>
                     <Button onClick={requestSensorsReading}>{"Read Moisture Sensors"}</Button>

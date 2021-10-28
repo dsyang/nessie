@@ -53,7 +53,7 @@ const HookMqtt = () => {
       client.on('message', (topic, message) => {
         const payload = { topic, message: message.toString() };
         console.log(payload);
-        handleNewMessage(JSON.parse(message));
+        handleNewMessage(JSON.parse(message), viewModel, setViewModel);
         setPayload(payload);
       });
     }
@@ -105,9 +105,6 @@ const HookMqtt = () => {
     }
   };
 
-  const exConfig = { 'debug_level': 0, 'num_relay_pins': 4, 'solenoid_pin': 7, 'num_sensors': 4, 'sensor_wet': 700, 'sensor_dry': 810 }
-  const exStats = { 'data': { '7': [1, 1], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
-  const exSensors = { 'data': { '7': [0, 0], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
   return (
     <>
       <Connection
@@ -120,9 +117,9 @@ const HookMqtt = () => {
         isSubscribed={isSubscribed} />
       {!isSubscribed ? null :
         <Stats
-          config={JSON.stringify(exConfig)}
-          stats={JSON.stringify(exStats)}
-          exSensors={JSON.stringify(exSensors)}
+          config={viewModel.configuration}
+          zones={viewModel.zones}
+          sensors={viewModel.moisture_sensors}
           requestConfig={genRequestConfig(mqttPublish)}
           requestZonesReading={genRequestZonesReading(mqttPublish)}
           requestSensorsReading={genRequestMoistureReadings(mqttPublish)}

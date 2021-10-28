@@ -26,17 +26,17 @@ export const INITIAL_VIEW_MODEL = {
     ]
 }
 
-export function handleNewMessage(payload) {
+export function handleNewMessage(payload, currentViewModel, setViewModel) {
     if (payload.status === "ok") {
         switch(payload.cmd) {
             case COMMANDS.config:
-                console.log("config")
+                handleConfigCommandResponse(payload.msg, currentViewModel, setViewModel);
                 break;
             case COMMANDS.moisture_sensors:
-                console.log("moasd")
+                handleReadSensorsCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.status:
-                console.log("status")
+                handleStatusCommandResponse(payload.msg, currentViewModel, setViewModel);
                 break;
             case COMMANDS.stopall:
                 console.log("STOPPPPP")
@@ -55,6 +55,42 @@ export function handleNewMessage(payload) {
     }
 }
 
-const exConfig = { 'debug_level': 0, 'num_relay_pins': 4, 'solenoid_pin': 7, 'num_sensors': 4, 'sensor_wet': 700, 'sensor_dry': 810 }
-const exStats = { 'data': { '7': [1, 1], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
-const exSensors = {'readings': [850, 875, 868, 859]}
+function handleConfigCommandResponse(payload, currentViewModel, setViewModel) {
+    const newViewModel = {
+        ...currentViewModel,
+        configuration: {
+            debug_level: payload.debug_level,
+            num_zones: payload.num_relay_pins,
+            num_sensors: payload.num_sensors,
+            sensor_wet_limit: payload.sensor_wet,
+            sensor_dry_limit: payload.sensor_dry,
+        }
+    }
+    setViewModel(newViewModel);
+}
+
+function handleReadSensorsCommandResponse(payload, currentViewModel, setViewModel) {
+    console.log(payload)
+    const last_read_timestamp_ms = payload.timestamp_ms
+    const moisture_sensors = payload.msg.readings.map((reading) => {
+        return {
+            reading,
+            last_read_timestamp_ms
+        };
+    });
+    const newViewModel = {
+        ...currentViewModel,
+        moisture_sensors,
+    }
+    setViewModel(newViewModel);
+}
+
+function handleStatusCommandResponse(payload, currentViewModel, setViewModel) {
+    console.log(payload)
+    const exStats = { 'data': { '7': [1, 1], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
+    const newViewModel = {
+        ...currentViewModel,
+        zones: []
+    }
+    setViewModel(newViewModel);
+}
