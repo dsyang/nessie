@@ -39,7 +39,7 @@ class NessieMqttClient:
 
     def ok_payload(self, cmd, msg):
         timestamp_ms = int(time.time() * 1000)
-        output = f'{{ "status": "ok", "cmd": "{cmd}", "msg": {msg}, "timestamp_ms":{timestamp_ms} }}'
+        output = f'{{ "status": "ok", "cmd": "{cmd}", "msg": {json.dumps(msg)}, "timestamp_ms":{timestamp_ms} }}'
         return output
 
     def error_payload(self, cmd, error):
@@ -74,16 +74,16 @@ class NessieMqttClient:
                     resp = self.ok_payload(cmd, f"zone {zone_num} already stopped")
             elif cmd == "moisture":
                 val = self.hw.read_moisture_sensors()
-                resp = self.ok_payload(cmd, json.dumps(val['data']))
+                resp = self.ok_payload(cmd, val['data'])
             elif cmd == "status":
                 val = self.hw.read_state()
-                resp = self.ok_payload(cmd, json.dumps(val["data"]))
+                resp = self.ok_payload(cmd, val["data"])
             elif cmd == "STOPALL":
                 resp = self.ok_payload(cmd, "shutting down")
                 val = self.hw.stop_all()
                 resp = self.ok_payload(cmd, "stopped all watering zones")
             elif cmd == "config":
-                resp = self.ok_payload(cmd, json.dumps(self.hw.config))
+                resp = self.ok_payload(cmd, self.hw.config)
             else:
                 msg = f"Invalid payload received: {data}"
                 raise NessieError(msg)
