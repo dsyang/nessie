@@ -79,7 +79,7 @@ class NessieHardware:
     def read_state(self):
         """
         tell hardware to read state of watering zones. response should be a json object that looks like this:
-        { 'data': {'<pin_num>': [ '<pin_state>', '<digital_read>' ], ...} }
+        { 'data': {'<pin_num>': [ '<pin_state>', '<digital_read>', '<moisture_sensor_index>' ], ...} }
 
         """
         self.conn.write(b"STATUS|")
@@ -96,8 +96,8 @@ class NessieHardware:
         self.conn.write(b"SENSE|")
         line = self.conn.readline()
         val = self.__read_json_or_throw(line, "Failure reading sensors")
-        val["wet_limit"] = self.config["sensor_wet"]
-        val["dry_limit"] = self.config["sensor_dry"]
+        val["data"]["wet_limit"] = self.config["sensor_wet"]
+        val["data"]["dry_limit"] = self.config["sensor_dry"]
         return val
 
     def start_watering(self, zone_num):

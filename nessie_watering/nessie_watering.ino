@@ -33,6 +33,7 @@ int WATER_PUMP_ZONE_2 = 4;
 int WATER_PUMP_ZONE_3 = 5;
 
 int ZONE_PINS[] = {WATER_PUMP_ZONE_0, WATER_PUMP_ZONE_1, WATER_PUMP_ZONE_2, WATER_PUMP_ZONE_3};
+int ZONE_MOISTURE_INDEX[] = {0, 1, 2, 3};
 char STATUS_CMD_OUT[] = "Z0(%d)=%d:%d Z1(%d)=%d:%d Z2(%d)=%d:%d Z3(%d)=%d:%d";
 
 char RESPONSE_JSON_OUT_PREFIX[] = "{\"data\":";
@@ -46,12 +47,12 @@ char CONIFG_JSON_OUT[] = "{ \
 \"sensor_dry\": %d \
 }";
 
-char STATUS_JSON_OUT[] = "{ \
-\"%d\": [ %d, %d], \
-\"%d\": [ %d, %d], \
-\"%d\": [ %d, %d], \
-\"%d\": [ %d, %d] \
-}";
+char STATUS_JSON_OUT[] = "[ \
+[ %d, %d, %d, %d], \
+[ %d, %d, %d, %d], \
+[ %d, %d, %d, %d], \
+[ %d, %d, %d, %d] \
+]";
 
 char SENSE_JSON_OUT[] = "{ \
 \"readings\":[ %d, %d, %d, %d] \
@@ -275,10 +276,10 @@ void readZones()
       resp,
       sizeof(resp),
       STATUS_JSON_OUT,
-      ZONE_PINS[0], zoneStates[0], currentPinVal[0],
-      ZONE_PINS[1], zoneStates[1], currentPinVal[1],
-      ZONE_PINS[2], zoneStates[2], currentPinVal[2],
-      ZONE_PINS[3], zoneStates[3], currentPinVal[3]);
+      ZONE_PINS[0], zoneStates[0], currentPinVal[0], ZONE_MOISTURE_INDEX[0],
+      ZONE_PINS[1], zoneStates[1], currentPinVal[1], ZONE_MOISTURE_INDEX[1],
+      ZONE_PINS[2], zoneStates[2], currentPinVal[2], ZONE_MOISTURE_INDEX[2],
+      ZONE_PINS[3], zoneStates[3], currentPinVal[3], ZONE_MOISTURE_INDEX[3]);
 
   out_buffer += RESPONSE_JSON_OUT_PREFIX;
   out_buffer += resp;
