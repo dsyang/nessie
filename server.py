@@ -39,12 +39,12 @@ class NessieMqttClient:
 
     def ok_payload(self, cmd, msg):
         timestamp_ms = int(time.time() * 1000)
-        output = f"{{ 'status': 'ok', 'cmd': '{cmd}', msg': '{msg}', 'timestamp_ms':{timestamp_ms} }}"
+        output = f'{{ "status": "ok", "cmd": "{cmd}", "msg": {msg}, "timestamp_ms":{timestamp_ms} }}'
         return output
 
     def error_payload(self, cmd, error):
         timestamp_ms = int(time.time() * 1000)
-        output = f"{{ 'status': 'error', 'cmd': '{cmd}', 'msg': '{error}', 'timestamp_ms':{timestamp_ms} }}"
+        output = f'{{ "status": "error", "cmd": "{cmd}", "msg": "{error}", "timestamp_ms":{timestamp_ms} }}'
         return output
 
     def send(self, payload):
@@ -71,19 +71,19 @@ class NessieMqttClient:
                 if val["data"] == 200:
                     resp = self.ok_payload(cmd, f"started zone {zone_num}")
                 else:
-                    resp = self.ok_payload(cmd, f"zone {zone_num} already started")
+                    resp = self.ok_payload(cmd, f"zone {zone_num} already stopped")
             elif cmd == "moisture":
                 val = self.hw.read_moisture_sensors()
-                resp = self.ok_payload(cmd, f"moisture levels: {val['data']}")
+                resp = self.ok_payload(cmd, json.dumps(val['data']))
             elif cmd == "status":
                 val = self.hw.read_state()
-                resp = self.ok_payload(cmd, str(val["data"]))
+                resp = self.ok_payload(cmd, json.dumps(val["data"]))
             elif cmd == "STOPALL":
                 resp = self.ok_payload(cmd, "shutting down")
                 val = self.hw.stop_all()
                 resp = self.ok_payload(cmd, "stopped all watering zones")
             elif cmd == "config":
-                resp = self.ok_payload(cmd, str(self.hw.config))
+                resp = self.ok_payload(cmd, json.dumps(self.hw.config))
             else:
                 msg = f"Invalid payload received: {data}"
                 raise NessieError(msg)
