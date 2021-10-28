@@ -9,15 +9,16 @@ const Stats = ({ config, requestConfig, sensors, requestSensorsReading, zones, r
     return (
         <Card
             title="Stats"
-            actions={[
-                <Button onClick={requestConfig}>{"Read Config"}</Button>,
-                <Button onClick={requestSensorsReading}>{"Read Moisture Sensors"}</Button>,
-                <Button onClick={requestZonesReading}>{"Read Zone Stats"}</Button>
-            ]}
         >
             <Typography>
                 <Paragraph>Config: {config}</Paragraph>
-                <Paragraph>LOLOL</Paragraph>
+                <Paragraph>Sensor Readings: {sensors}</Paragraph>
+                <Paragraph>Current Zone Readings: {zones}</Paragraph>
+                <Paragraph>
+                    <Button onClick={requestConfig}>{"Read Config"}</Button>
+                    <Button onClick={requestSensorsReading}>{"Read Moisture Sensors"}</Button>
+                    <Button onClick={requestZonesReading}>{"Read Zone Stats"}</Button>
+                </Paragraph>
             </Typography>
         </Card>
     )

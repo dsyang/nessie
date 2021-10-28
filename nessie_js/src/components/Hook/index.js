@@ -3,6 +3,8 @@ import Connection from './Connection';
 import Publisher from './Publisher';
 import Receiver from './Receiver';
 import Stats, { readConfig } from './Stats';
+import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading} from './api';
+import { INITIAL_VIEW_MODEL, handleNewMessage } from './lib';
 import mqtt from 'mqtt';
 
 export const QosOption = createContext([])
@@ -26,6 +28,7 @@ const HookMqtt = () => {
   const [payload, setPayload] = useState({});
   const [connectStatus, setConnectStatus] = useState('Connect');
   const [publishTopic, setPublishTopic] = useState('');
+  const [viewModel, setViewModel] = useState(INITIAL_VIEW_MODEL);
 
   const mqttConnect = (host, mqttOption, publishTopic) => {
     if (client === null || !client.connected) {
@@ -50,6 +53,7 @@ const HookMqtt = () => {
       client.on('message', (topic, message) => {
         const payload = { topic, message: message.toString() };
         console.log(payload);
+        console.log(JSON.parse(message))
         setPayload(payload);
       });
     }
@@ -65,8 +69,8 @@ const HookMqtt = () => {
 
   const mqttPublish = (context) => {
     if (client) {
-      const { topic, qos, payload } = context;
-      client.publish(topic, payload, { qos }, error => {
+      const { qos, payload } = context;
+      client.publish(publishTopic, payload, { qos }, error => {
         if (error) {
           console.log('Publish error: ', error);
         }
@@ -104,24 +108,6 @@ const HookMqtt = () => {
   const exConfig = { 'debug_level': 0, 'num_relay_pins': 4, 'solenoid_pin': 7, 'num_sensors': 4, 'sensor_wet': 700, 'sensor_dry': 810 }
   const exStats = { 'data': { '7': [1, 1], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
   const exSensors = { 'data': { '7': [0, 0], '6': [1, 1], '4': [1, 1], '5': [1, 1] } }
-  const requestConfig = () => {
-    mqttPublish({
-      topic: publishTopic,
-      qos: 0,
-      payload: JSON.stringify({
-        cmd: "config",
-      })
-    });
-  }
-  const requestZonesReading = () => {
-    mqttPublish({
-      topic: publishTopic,
-      qos: 0,
-      payload: JSON.stringify({
-        cmd: "status",
-      })
-    })
-  }
   return (
     <>
       <Connection
@@ -137,8 +123,9 @@ const HookMqtt = () => {
           config={JSON.stringify(exConfig)}
           stats={JSON.stringify(exStats)}
           exSensors={JSON.stringify(exSensors)}
-          requestConfig={requestConfig}
-          requestZonesReading={requestZonesReading}
+          requestConfig={genRequestConfig(mqttPublish)}
+          requestZonesReading={genRequestZonesReading(mqttPublish)}
+          requestSensorsReading={genRequestMoistureReadings(mqttPublish)}
         />}
       <QosOption.Provider value={qosOption}>
         <Publisher publish={mqttPublish} isConnected={connectStatus === "Connected"} />
