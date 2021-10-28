@@ -8,7 +8,14 @@ if __name__ == "__main__":
     formatter = (
         "[%(asctime)s] %(name)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
     )
-    logging.basicConfig(level=logging.DEBUG, format=formatter)
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format=formatter,
+        handlers= [
+            logging.FileHandler("nessie.log"),
+            logging.StreamHandler()
+        ]
+    )
 
     parser = argparse.ArgumentParser(
         description="Remote watering system that controls an arduino with mqtt."

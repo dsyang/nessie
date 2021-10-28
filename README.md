@@ -7,6 +7,7 @@ Indoor plant remote watering system for RPi
 - Install the arduino sketch
 - `python nessie.py --arduino <file for serial connection> [--mqtt <mqtt broker url>] [--uuid <UUID for mqtt>]`
 - `python nessie.py /dev/ttyACM0 --uuid dsyangtest`
+- Use `lsof /dev/ttyACM0` to find out which process is connected right now
 
 ## Server.py
 
