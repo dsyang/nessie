@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import Connection from './Connection';
 import Publisher from './Publisher';
 import Receiver from './Receiver';
-import Stats, { readConfig } from './Stats';
+import Stats from './Stats';
 import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading} from './api';
 import { INITIAL_VIEW_MODEL, handleNewMessage } from './lib';
 import mqtt from 'mqtt';
@@ -53,7 +53,7 @@ const HookMqtt = () => {
       client.on('message', (topic, message) => {
         const payload = { topic, message: message.toString() };
         console.log(payload);
-        console.log(JSON.parse(message))
+        handleNewMessage(JSON.parse(message));
         setPayload(payload);
       });
     }

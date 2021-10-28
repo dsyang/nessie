@@ -1,3 +1,5 @@
+import { COMMANDS } from "./api";
+
 export const INITIAL_VIEW_MODEL = {
     configuration: {
         // debug_level: 0-2,
@@ -24,8 +26,33 @@ export const INITIAL_VIEW_MODEL = {
     ]
 }
 
-export function handleNewMessage() {
-
+export function handleNewMessage(payload) {
+    if (payload.status === "ok") {
+        switch(payload.cmd) {
+            case COMMANDS.config:
+                console.log("config")
+                break;
+            case COMMANDS.moisture_sensors:
+                console.log("moasd")
+                break;
+            case COMMANDS.status:
+                console.log("status")
+                break;
+            case COMMANDS.stopall:
+                console.log("STOPPPPP")
+                break;
+            case COMMANDS.water_start:
+                console.log('start water')
+                break;
+            case COMMANDS.water_stop:
+                console.log("water_stop")
+                break;
+            default:
+                console.error(payload.msg)
+        }
+    } else {
+        console.error(payload);
+    }
 }
 
 const exConfig = { 'debug_level': 0, 'num_relay_pins': 4, 'solenoid_pin': 7, 'num_sensors': 4, 'sensor_wet': 700, 'sensor_dry': 810 }
