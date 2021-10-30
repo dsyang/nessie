@@ -79,3 +79,12 @@ Communication is done as a JSON wire format.
 This program periodically sends MQTT commands to `Server.py` to read moisture sensor data and publish it to an airtable table. 
 
 If moisture sensor data for a single zone is too high, it will issue a stop command for that zone.
+
+
+## Diary
+- Start a test today (10/30~2:30pm) Watering zone 2. Bottom watering
+```
+[2021-10-30 22:24:55,186] root {server.py:127} INFO - RECV dsyangtest/nessie/subscribe, payload = b'{"cmd": "start", "data":{"zone": 2}}'
+[2021-10-30 22:32:08,573] root {server.py:127} INFO - RECV dsyangtest/nessie/subscribe, payload = b'{"cmd": "stop", "data":{"zone": 2}}'
+```
+- About 7min of watering. 
