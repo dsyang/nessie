@@ -43,6 +43,15 @@ class NessieHardware:
             raise NessieError(f"{fail_msg}: {val['msg']} out of input: {line}")
         return val
 
+    def read_conn(self):
+        line = self.conn.readline()
+        self.logger.info(f"resp: {line}")
+        return line
+
+    def write_conn(self, cmd):
+        self.logger.info(f"cmd: {cmd}")
+        self.conn.write(cmd.encode())
+
     def __water_zone(self, zone_num, start_watering):
         """
         send command to hardware to start or stop watering the given zone. Response should be a json object that looks like this:
@@ -53,8 +62,8 @@ class NessieHardware:
         num_relay_pins = self.config["num_relay_pins"]
         if zone_num < num_relay_pins:
             cmd = f"ZONE{zone_num}_{START_VAL if start_watering else STOP_VAL}|"
-            self.conn.write(cmd.encode())
-            line = self.conn.readline()
+            self.write_conn(cmd)
+            line = self.read_conn()
             val = self.__read_json_or_throw(
                 line,
                 f"Failure {'starting' if start_watering else 'stopping'} to water zone {zone_num}",
@@ -71,8 +80,8 @@ class NessieHardware:
         first function called after establishing connection to read configuration options. Should be a json object that looks like this:
         { 'debug_level': <num>, 'num_zones': <num>, 'num_sensors': <num>, 'solenoid_pin': <num> }
         """
-        self.conn.write(b"CONFIG|")
-        line = self.conn.readline()
+        self.write_conn("CONFIG|")
+        line = self.read_conn()
         val = self.__read_json_or_throw(line, "Failure reading initial configuration")
         return val
 
@@ -82,8 +91,8 @@ class NessieHardware:
         { 'data': {'<pin_num>': [ '<pin_state>', '<digital_read>', '<moisture_sensor_index>' ], ...} }
 
         """
-        self.conn.write(b"STATUS|")
-        line = self.conn.readline()
+        self.write_conn("STATUS|")
+        line = self.read_conn()
         val = self.__read_json_or_throw(line, "Failure reading status")
         return val
 
@@ -93,8 +102,8 @@ class NessieHardware:
         { 'data': {'readings': [ <sensor_1>, <sensor_2> ], "wet_limit": <num>, "dry_limit": <num>} }
 
         """
-        self.conn.write(b"SENSE|")
-        line = self.conn.readline()
+        self.write_conn("SENSE|")
+        line = self.read_conn()
         val = self.__read_json_or_throw(line, "Failure reading sensors")
         val["data"]["wet_limit"] = self.config["sensor_wet"]
         val["data"]["dry_limit"] = self.config["sensor_dry"]
@@ -107,8 +116,8 @@ class NessieHardware:
         return self.__water_zone(zone_num, start_watering=False)
 
     def stop_all(self):
-        self.conn.write(b"STOP|")
-        line = self.conn.readline()
+        self.write_conn(b"STOP|")
+        line = self.read_conn()
         val = self.__read_json_or_throw(line, "Failure stopping all watering")
         return val
 
