@@ -116,7 +116,7 @@ class NessieHardware:
         return self.__water_zone(zone_num, start_watering=False)
 
     def stop_all(self):
-        self.write_conn(b"STOP|")
+        self.write_conn("STOP|")
         line = self.read_conn()
         val = self.__read_json_or_throw(line, "Failure stopping all watering")
         return val
