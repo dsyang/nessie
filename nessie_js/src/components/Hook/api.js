@@ -75,3 +75,21 @@ export function genRequestStopAll(mqttPublish) {
         });
     }
 }
+
+export function genRequestStartWatering(mqttPublish, zone_num) {
+    return () => {
+        mqttPublish({
+            qos: 0,
+            payload: COMMAND_PAYLOADS.water_start(zone_num),
+        })
+    }
+}
+
+export function genRequestStopWatering(mqttPublish, zone_num) {
+    return () => {
+        mqttPublish({
+            qos: 0,
+            payload: COMMAND_PAYLOADS.water_stop(zone_num),
+        })
+    }
+}

@@ -3,7 +3,14 @@ import Connection from './Connection';
 import Publisher from './Publisher';
 import Receiver from './Receiver';
 import Stats from './Stats';
-import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading, genRequestStopAll } from './api';
+import {
+  genRequestConfig,
+  genRequestMoistureReadings,
+  genRequestZonesReading,
+  genRequestStopAll,
+  genRequestStartWatering,
+  genRequestStopWatering
+} from './api';
 import { INITIAL_VIEW_MODEL, handleNewMessage } from './lib';
 import mqtt from 'mqtt';
 import Zone from './Zone';
@@ -153,9 +160,16 @@ const HookMqtt = () => {
           requestSensorsReading={genRequestMoistureReadings(mqttPublish)}
           requestStopAll={genRequestStopAll(mqttPublish)}
         />}
-      {viewModel.zones.map((zone, idx) => {
-        return <Zone key={idx} zone={zone} sensors={viewModel.moisture_sensors} requestSensorsReading={genRequestMoistureReadings(mqttPublish)}></Zone>;
-      })}
+      {viewModel.zones.map((zone, idx) => (
+        <Zone
+          key={idx}
+          zone={zone}
+          sensors={viewModel.moisture_sensors}
+          requestSensorsReading={genRequestMoistureReadings(mqttPublish)}
+          requestStartWatering={genRequestStartWatering(mqttPublish, zone.zone_num)}
+          requestStopWatering={genRequestStopWatering(mqttPublish, zone.zone_num)}
+        />
+      ))}
 
       <Card title="Advanced">
         <Collapse defaultActiveKey={['log']}>

@@ -61,13 +61,13 @@ export function handleNewMessage(payload, currentViewModel, setViewModel) {
                 handleStatusCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.stopall:
-                console.log("STOPPPPP")
+                handleStopAllCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.water_start:
-                console.log('start water')
+                handleStartWaterCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             case COMMANDS.water_stop:
-                console.log("water_stop")
+                handleStopWaterCommandResponse(payload, currentViewModel, setViewModel);
                 break;
             default:
                 console.error(payload.msg)
@@ -137,4 +137,28 @@ function handleStatusCommandResponse(payload, currentViewModel, setViewModel) {
         zones,
     }
     setViewModel(newViewModel);
+}
+
+function handleStopAllCommandResponse(payload, currentViewModel, setViewModel) {
+    console.log(payload);
+    alert(payload.msg);
+
+    const newViewModel = { ...currentViewModel };
+    newViewModel.zones.forEach((zone, idx) => {
+        if (zone.state.is_on) {
+            zone.state.is_on = false;
+            zone.state.last_changed_timestamp_ms = payload.timestamp_ms;
+        }
+    });
+    setViewModel(newViewModel);
+}
+
+function handleStartWaterCommandResponse(payload, currentViewModel, setViewModel) {
+    console.log(payload);
+    const newViewModel = { ...currentViewModel };
+
+}
+
+function handleStopWaterCommandResponse(payload, currentViewModel, setViewModel) {
+    console.log(payload);
 }

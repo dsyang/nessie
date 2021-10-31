@@ -18,7 +18,7 @@ const Zone = ({ zone, sensors, requestStartWatering, requestStopWatering, reques
     const Status = (<>
         <Paragraph>
             <Text strong>{state.is_on ? "WATERING" : "STOPPED"} </Text>
-            - (Checksum: {state.app_state_minus_digital_read}) as of {state.last_read}
+            - (Checksum: {state.app_state_minus_digital_read} as of {state.last_read})
         </Paragraph>
     </>)
 
