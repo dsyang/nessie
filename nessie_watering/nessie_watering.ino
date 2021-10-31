@@ -27,6 +27,9 @@ int MOISTURE_SENSORS[] = {MOISTURE_SENSOR_ZONE_0, MOISTURE_SENSOR_ZONE_1, MOISTU
 char SENSE_CMD_OUT[] = "%04d %04d %04d %04d";
 
 int SOLENOID_VALVE_PIN = 7;
+int SOLENOID_VALVE_ZONE_IDX = 0;
+int SOLENOID_VALVE_SENSOR_IDX = 0;
+
 int WATER_PUMP_ZONE_0 = 7;
 int WATER_PUMP_ZONE_1 = 6;
 int WATER_PUMP_ZONE_2 = 4;
@@ -60,6 +63,7 @@ char SENSE_JSON_OUT[] = "{ \
 
 char ZONE_WATER_SUCCESS[] = "200";
 char ZONE_WATER_NO_CHANGE[] = "304";
+char ZONE_WATER_EMERGENCY[] = "205";
 
 // High means LED is off
 int zoneStates[] = {HIGH, HIGH, HIGH, HIGH};
@@ -96,94 +100,110 @@ void setup()
 
 void loop()
 {
-  readSerialPortUntil();
-
-  if (in_buffer != "")
+  if (shouldAutoShutoffZone(SOLENOID_VALVE_SENSOR_IDX, FRESHLY_WATERED_PLANT_READING))
   {
-    if (in_buffer == "DBG0") {
-      IS_DEBUG_LEVEL = 0;
-      writeConfig();
-    } else if (in_buffer == "DBG1") {
-      IS_DEBUG_LEVEL = 1;
-      writeConfig();
-    } else if (in_buffer == "DBG2") {
-      IS_DEBUG_LEVEL = 2;
-      writeConfig();
-    } else if (in_buffer == "CONFIG") {
-      writeConfig();
-    }
+    zoneStates[SOLENOID_VALVE_ZONE_IDX] = emergencyWater(SOLENOID_VALVE_PIN, zoneStates[SOLENOID_VALVE_ZONE_IDX]);
+  }
+  else
+  {
 
-    if (in_buffer == "STOP") {
-      stopAllWatering();
-    }
-    else if (in_buffer == "SENSE")
-    {
-      readMoistureSensors();
-    }
-    else if (in_buffer == "STATUS")
-    {
-      readZones();
-    }
-    else if (in_buffer == "ZONE0_0")
-    {
-      zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], LOW);
-    }
-    else if (in_buffer == "ZONE0_1")
-    {
-      zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], HIGH);
-    }
+    readSerialPortUntil();
 
-    else if (in_buffer == "ZONE1_0")
+    if (in_buffer != "")
     {
-      zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], LOW);
-    }
-    else if (in_buffer == "ZONE1_1")
-    {
-      zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], HIGH);
-    }
-
-    else if (in_buffer == "ZONE2_0")
-    {
-      zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], LOW);
-    }
-    else if (in_buffer == "ZONE2_1")
-    {
-      zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], HIGH);
-    }
-
-    else if (in_buffer == "ZONE3_0")
-    {
-      zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], LOW);
-    }
-    else if (in_buffer == "ZONE3_1")
-    {
-      zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], HIGH);
-    }
-    else if (IS_DEBUG_LEVEL > 1)
-    {
-      if (in_buffer == "z1")
+      if (in_buffer == "DBG0")
       {
-        zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], zoneStates[1] == LOW ? HIGH : LOW);
+        IS_DEBUG_LEVEL = 0;
+        writeConfig();
       }
-      else if (in_buffer == "z2")
+      else if (in_buffer == "DBG1")
       {
-        zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], zoneStates[2] == LOW ? HIGH : LOW);
+        IS_DEBUG_LEVEL = 1;
+        writeConfig();
       }
-      else if (in_buffer == "z3")
+      else if (in_buffer == "DBG2")
       {
-        zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], zoneStates[3] == LOW ? HIGH : LOW);
+        IS_DEBUG_LEVEL = 2;
+        writeConfig();
       }
-      else if (in_buffer == "z0")
+      else if (in_buffer == "CONFIG")
       {
-        zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], zoneStates[0] == LOW ? HIGH : LOW);
+        writeConfig();
       }
-    }
 
-    if (out_buffer != "" && IS_DEBUG_LEVEL > 1)
-    {
-      writeSerialPort();
-      delay(10);
-      readZones();
+      if (in_buffer == "STOP")
+      {
+        stopAllWatering();
+      }
+      else if (in_buffer == "SENSE")
+      {
+        readMoistureSensors();
+      }
+      else if (in_buffer == "STATUS")
+      {
+        readZones();
+      }
+      else if (in_buffer == "ZONE0_0")
+      {
+        zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], LOW);
+      }
+      else if (in_buffer == "ZONE0_1")
+      {
+        zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], HIGH);
+      }
+
+      else if (in_buffer == "ZONE1_0")
+      {
+        zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], LOW);
+      }
+      else if (in_buffer == "ZONE1_1")
+      {
+        zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], HIGH);
+      }
+
+      else if (in_buffer == "ZONE2_0")
+      {
+        zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], LOW);
+      }
+      else if (in_buffer == "ZONE2_1")
+      {
+        zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], HIGH);
+      }
+
+      else if (in_buffer == "ZONE3_0")
+      {
+        zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], LOW);
+      }
+      else if (in_buffer == "ZONE3_1")
+      {
+        zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], HIGH);
+      }
+      else if (IS_DEBUG_LEVEL > 1)
+      {
+        if (in_buffer == "z1")
+        {
+          zoneStates[1] = water(WATER_PUMP_ZONE_1, zoneStates[1], zoneStates[1] == LOW ? HIGH : LOW);
+        }
+        else if (in_buffer == "z2")
+        {
+          zoneStates[2] = water(WATER_PUMP_ZONE_2, zoneStates[2], zoneStates[2] == LOW ? HIGH : LOW);
+        }
+        else if (in_buffer == "z3")
+        {
+          zoneStates[3] = water(WATER_PUMP_ZONE_3, zoneStates[3], zoneStates[3] == LOW ? HIGH : LOW);
+        }
+        else if (in_buffer == "z0")
+        {
+          zoneStates[0] = water(WATER_PUMP_ZONE_0, zoneStates[0], zoneStates[0] == LOW ? HIGH : LOW);
+        }
+      }
+
+      if (out_buffer != "" && IS_DEBUG_LEVEL > 1)
+      {
+        writeSerialPort();
+        delay(10);
+        readZones();
+      }
     }
   }
 
@@ -260,6 +280,12 @@ int readSingleMoistureSensor(int sensor_num, int pin, int num_samples)
   return avg;
 }
 
+bool shouldAutoShutoffZone(int sensorIndex, int currentPinState) {
+  int sensorPin = MOISTURE_SENSORS[sensorIndex];
+  int reading = readSingleMoistureSensor(sensorIndex, sensorPin, 5);
+  return reading < FRESHLY_WATERED_PLANT_READING && currentPinState == LOW;
+}
+
 /**
  * Reads the zone state and the current pin state.
  */
@@ -287,9 +313,9 @@ void readZones()
 }
 
 /**
- * Returns the value to store in the pint state.
+ * Returns the value to store in the pin state.
  */
-int water(int pin, int currentPinState, int newPinState)
+int internalWater(int pin, int currentPinState, int newPinState, bool isEmergencyShutoff)
 {
   int current_val = digitalRead(pin);
   if (current_val == newPinState || currentPinState == newPinState)
@@ -303,16 +329,31 @@ int water(int pin, int currentPinState, int newPinState)
   {
     digitalWrite(pin, newPinState);
     out_buffer += RESPONSE_JSON_OUT_PREFIX;
-    out_buffer += ZONE_WATER_SUCCESS;
+    out_buffer += (isEmergencyShutoff ? ZONE_WATER_EMERGENCY : ZONE_WATER_SUCCESS);
     out_buffer += RESPONSE_JSON_OUT_POSTFIX;
     return newPinState;
   }
 }
 
 /**
+ * Normal watering
+ */
+int water(int pin, int currentPinState, int newPinState) {
+  return internalWater(pin, currentPinState, newPinState, false);
+}
+
+/**
+ * Emergency shutoff watering
+ */
+int emergencyWater(int pin, int currentPinState) {
+  return internalWater(pin, currentPinState, HIGH, true);
+}
+
+/**
  * Stops all watering
  */
-void stopAllWatering() {
+void stopAllWatering()
+{
   for (int i = 0; i < NUM_ZONES; i++)
   {
     digitalWrite(ZONE_PINS[i], HIGH);
