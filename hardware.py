@@ -49,6 +49,11 @@ class NessieHardware:
         return line
 
     def write_conn(self, cmd):
+        # See if emergency shutoff was initiated and there's something for us to read.
+        if (self.conn.inWaiting() > 0):
+            line = self.conn.readline()
+            self.logger.info(f"EMERGENCY SHUTOFF FOR SOLENOID OCCURED")
+
         self.logger.info(f"cmd: {cmd}")
         self.conn.write(cmd.encode())
 
@@ -130,20 +135,6 @@ if __name__ == "__main__":
     with NessieHardware("/dev/ttyACM0", logging) as hw:
         logging.info(hw.config)
         logging.info(hw.read_state())
-        logging.info(hw.start_watering(0))
-        logging.info(hw.read_state())
-        logging.info(hw.start_watering(1))
-        logging.info(hw.read_state())
-        logging.info(hw.start_watering(2))
-        logging.info(hw.read_state())
         logging.info(hw.start_watering(3))
         logging.info(hw.read_state())
-        logging.info(hw.read_moisture_sensors())
-        logging.info(hw.stop_watering(0))
-        logging.info(hw.read_state())
-        logging.info(hw.stop_watering(1))
-        logging.info(hw.read_state())
-        logging.info(hw.stop_watering(2))
-        logging.info(hw.read_state())
-        logging.info(hw.stop_watering(3))
-        logging.info(hw.read_state())
+        

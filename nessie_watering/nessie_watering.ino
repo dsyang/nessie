@@ -26,7 +26,6 @@ int AIR_READING = 850;
 int MOISTURE_SENSORS[] = {MOISTURE_SENSOR_ZONE_0, MOISTURE_SENSOR_ZONE_1, MOISTURE_SENSOR_ZONE_2, MOISTURE_SENSOR_ZONE_3};
 char SENSE_CMD_OUT[] = "%04d %04d %04d %04d";
 
-int SOLENOID_VALVE_PIN = 7;
 int SOLENOID_VALVE_ZONE_IDX = 0;
 int SOLENOID_VALVE_SENSOR_IDX = 0;
 
@@ -100,9 +99,9 @@ void setup()
 
 void loop()
 {
-  if (shouldAutoShutoffZone(SOLENOID_VALVE_SENSOR_IDX, FRESHLY_WATERED_PLANT_READING))
+  if (shouldAutoShutoffZone(SOLENOID_VALVE_SENSOR_IDX, zoneStates[SOLENOID_VALVE_ZONE_IDX]))
   {
-    zoneStates[SOLENOID_VALVE_ZONE_IDX] = emergencyWater(SOLENOID_VALVE_PIN, zoneStates[SOLENOID_VALVE_ZONE_IDX]);
+    zoneStates[SOLENOID_VALVE_ZONE_IDX] = emergencyWater(ZONE_PINS[SOLENOID_VALVE_ZONE_IDX], zoneStates[SOLENOID_VALVE_ZONE_IDX]);
   }
   else
   {
@@ -221,7 +220,7 @@ void writeConfig()
       CONIFG_JSON_OUT,
       IS_DEBUG_LEVEL,
       NUM_ZONES,
-      SOLENOID_VALVE_PIN,
+      ZONE_PINS[SOLENOID_VALVE_ZONE_IDX],
       NUM_ZONES,
       FRESHLY_WATERED_PLANT_READING,
       AIR_READING);
@@ -280,10 +279,18 @@ int readSingleMoistureSensor(int sensor_num, int pin, int num_samples)
   return avg;
 }
 
-bool shouldAutoShutoffZone(int sensorIndex, int currentPinState) {
+bool shouldAutoShutoffZone(int sensorIndex, int currentPinState)
+{
   int sensorPin = MOISTURE_SENSORS[sensorIndex];
   int reading = readSingleMoistureSensor(sensorIndex, sensorPin, 5);
-  return reading < FRESHLY_WATERED_PLANT_READING && currentPinState == LOW;
+  bool shouldShutOff = reading < FRESHLY_WATERED_PLANT_READING && currentPinState == LOW;
+  if (IS_DEBUG_LEVEL > 1)
+  {
+    char resp[300];
+    snprintf(resp, sizeof(resp), "Autoshutoff check for sensor %d (pin:%d). Reading: %d, currentPinState: %d = %d", sensorIndex, sensorPin, reading, currentPinState, shouldShutOff);
+    Serial.println(resp);
+  }
+  return shouldShutOff;
 }
 
 /**
@@ -338,14 +345,16 @@ int internalWater(int pin, int currentPinState, int newPinState, bool isEmergenc
 /**
  * Normal watering
  */
-int water(int pin, int currentPinState, int newPinState) {
+int water(int pin, int currentPinState, int newPinState)
+{
   return internalWater(pin, currentPinState, newPinState, false);
 }
 
 /**
  * Emergency shutoff watering
  */
-int emergencyWater(int pin, int currentPinState) {
+int emergencyWater(int pin, int currentPinState)
+{
   return internalWater(pin, currentPinState, HIGH, true);
 }
 

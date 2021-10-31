@@ -1,5 +1,6 @@
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 from hardware import NessieHardware
 from server import NessieMqttClient
 
@@ -12,7 +13,7 @@ if __name__ == "__main__":
         level=logging.DEBUG,
         format=formatter,
         handlers= [
-            logging.FileHandler("nessie.log"),
+            RotatingFileHandler("nessie.log", maxBytes=1024*300, backupCount=1),
             logging.StreamHandler()
         ]
     )
