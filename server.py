@@ -60,12 +60,12 @@ class NessieMqttClient:
                 zone_num = int(payload["data"]["zone"])
                 val = self.hw.start_watering(zone_num)
 
-                resp = self.ok_payload(cmd, json.dumps({'zone': zone_num, 'status': val["data"]}))
+                resp = self.ok_payload(cmd, {'zone': zone_num, 'status': val["data"]})
             elif cmd == "stop":
                 zone_num = int(payload["data"]["zone"])
                 val = self.hw.stop_watering(zone_num)
 
-                resp = self.ok_payload(cmd, json.dumps({'zone': zone_num, 'status': val["data"]}))
+                resp = self.ok_payload(cmd, {'zone': zone_num, 'status': val["data"]})
             elif cmd == "moisture":
                 val = self.hw.read_moisture_sensors()
                 resp = self.ok_payload(cmd, val['data'])
