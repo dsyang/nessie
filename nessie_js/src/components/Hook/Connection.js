@@ -7,13 +7,13 @@ const Connection = ({ clientId, connect, disconnect, connectBtn, subscribe, unsu
   const [form] = Form.useForm();
   const record = {
     host: 'broker.emqx.io',
-    port: 8083,
+    port: 8084,
   };
-  const [topicUUID, setTopicUUID] = useState('dsyangtest');
+  const [topicUUID, setTopicUUID] = useState('7ee6f9fa-c7b4-4427-b441-c9d00897f33e');
   const [subTopic, setSubTopic] = useState('nessie/publish');
   const onFinish = () => {
     const { host, port } = record;
-    const url = `ws://${host}:${port}/mqtt`;
+    const url = `wss://${host}:${port}/mqtt`;
     const options = {
       keepalive: 30,
       protocolId: 'MQTT',
