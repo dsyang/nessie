@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, List } from 'antd';
+import { List } from 'antd';
 
 const Receiver = ({ payload }) => {
   const [messages, setMessages] = useState([])
@@ -10,26 +10,26 @@ const Receiver = ({ payload }) => {
     }
   }, [payload])
 
-  const renderListItem = (item) => (
-    <List.Item>
+  const renderListItem = (item) => {
+    const timestamp_ms = JSON.parse(item.message).timestamp_ms;
+    const timeString = new Date(timestamp_ms).toLocaleString();
+    return <List.Item>
       <List.Item.Meta
-        title={item.topic}
+        title={`${timeString} - ${item.topic}`}
         description={item.message}
       />
     </List.Item>
-  )
+  }
 
   return (
-    <Card
-      title="Receiver"
-    >
+    <>
       <List
         size="small"
         bordered
         dataSource={messages}
         renderItem={renderListItem}
       />
-    </Card>
+    </>
   );
 }
 

@@ -10,7 +10,7 @@ export const INITIAL_VIEW_MODEL = {
         // sensor_dry_limit: 810
     },
     zones: [
-        {
+        /*{
             // pin: 7,
             // state: {
             //   is_on: bool,
@@ -19,14 +19,33 @@ export const INITIAL_VIEW_MODEL = {
             //   last_read_timestamp_ms: int
             // }
             // moisture_sensor_index: 0
-        }
+        }*/
     ],
     moisture_sensors: [
-        {
+        /*{
             // reading: int,
             // last_read_timestamp_ms: int
+        }*/
+    ],
+}
+
+const ZONE_METADATA = [
+    { title: "Solenoid Valve", plants: "" },
+    { title: "Zone 1 (tub)", plants: "" },
+    { title: "Zone 2 ()", plants: "" },
+    { title: "Zone 3", plants: "" },
+];
+
+export function transformTimestampMsToString(obj) {
+    const newObj = { ...obj }
+    for (const [key, value] of Object.entries(newObj)) {
+        const [newKey, remainder] = key.split('_timestamp_ms');
+        if (remainder === '' && newObj[newKey] === undefined) {
+            newObj[newKey] = value > 0 ? new Date(value).toLocaleString() : "";
+            delete newObj[key];
         }
-    ]
+    }
+    return newObj;
 }
 
 export function handleNewMessage(payload, currentViewModel, setViewModel) {
@@ -99,6 +118,9 @@ function handleStatusCommandResponse(payload, currentViewModel, setViewModel) {
             last_changed_timestamp_ms = currentViewModel.zones[idx].state.last_changed_timestamp_ms
         }
         return {
+            title: ZONE_METADATA[idx].title,
+            plants: ZONE_METADATA[idx].plants,
+            zone_num: idx,
             pin: zone[0],
             state: {
                 is_on: zone[1] === IS_ON,

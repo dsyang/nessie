@@ -3,9 +3,13 @@ import Connection from './Connection';
 import Publisher from './Publisher';
 import Receiver from './Receiver';
 import Stats from './Stats';
-import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading } from './api';
+import { genRequestConfig, genRequestMoistureReadings, genRequestZonesReading, genRequestStopAll } from './api';
 import { INITIAL_VIEW_MODEL, handleNewMessage } from './lib';
 import mqtt from 'mqtt';
+import Zone from './Zone';
+import { Collapse, Card } from 'antd';
+
+const { Panel, } = Collapse;
 
 export const QosOption = createContext([])
 const qosOption = [
@@ -108,6 +112,9 @@ const HookMqtt = () => {
           return
         }
         console.log(`Subscribed to ${topic}`);
+        genRequestConfig(mqttPublish)();
+        genRequestMoistureReadings(mqttPublish)();
+        genRequestZonesReading(mqttPublish)();
         setIsSubscribed(true)
       });
     }
@@ -144,11 +151,24 @@ const HookMqtt = () => {
           requestConfig={genRequestConfig(mqttPublish)}
           requestZonesReading={genRequestZonesReading(mqttPublish)}
           requestSensorsReading={genRequestMoistureReadings(mqttPublish)}
+          requestStopAll={genRequestStopAll(mqttPublish)}
         />}
-      <QosOption.Provider value={qosOption}>
-        <Publisher publish={mqttPublish} isConnected={connectStatus === "Connected"} />
-      </QosOption.Provider>
-      <Receiver payload={payload} />
+      {viewModel.zones.map((zone, idx) => {
+        return <Zone key={idx} zone={zone} sensors={viewModel.moisture_sensors} requestSensorsReading={genRequestMoistureReadings(mqttPublish)}></Zone>;
+      })}
+
+      <Card title="Advanced">
+        <Collapse defaultActiveKey={['log']}>
+          <Panel header="Manual Publish" key="publish">
+            <QosOption.Provider value={qosOption}>
+              <Publisher publish={mqttPublish} isConnected={connectStatus === "Connected"} />
+            </QosOption.Provider>
+          </Panel>
+          <Panel header="Receiver log" key="log">
+            <Receiver payload={payload} />
+          </Panel>
+        </Collapse>
+      </Card>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Card, Form, Input, Row, Col, Button, Select } from 'antd';
+import { Form, Input, Row, Col, Button, Select } from 'antd';
 import { Typography, } from 'antd';
 import { QosOption } from './index'
 
@@ -82,11 +82,9 @@ where <> is:
   )
 
   return (
-    <Card
-      title="Publisher"
-    >
+    <>
       {PublishForm}
-    </Card>
+    </>
   );
 }
 
