@@ -9,7 +9,7 @@ import { transformTimestampMsToString } from './lib';
 const { Paragraph, Text } = Typography;
 const { Panel } = Collapse;
 
-const Zone = ({ zone, sensors, requestStartWatering, requestStopWatering, requestSensorsReading }) => {
+const Zone = ({ zone, sensors, requestStartWatering, requestStopWatering, requestSensorsReading, requestZonesReading }) => {
 
     const Description = zone.plants ? <Paragraph>with {zone.plants} </Paragraph> : undefined;
     const [idx, reading] = [zone.moisture_sensor_index, sensors[zone.moisture_sensor_index]];
@@ -34,9 +34,10 @@ const Zone = ({ zone, sensors, requestStartWatering, requestStopWatering, reques
                 {RecentlyChanged}
                 <SensorReadings idx={idx} reading={reading} />
                 <Paragraph>
-                    <Button onClick={requestStartWatering}>{"Start watering"}</Button>
-                    <Button onClick={requestStopWatering}>{"Stop watering"}</Button>
-                    <Button onClick={requestSensorsReading}>{"Update moisture"}</Button>
+                    <Button type={!zone.state.is_on? "primary" : "default"} onClick={requestStartWatering}>{"Start watering"}</Button>
+                    <Button type={zone.state.is_on? "primary" : "default"} onClick={requestStopWatering}>{"Stop watering"}</Button>
+                    <Button onClick={requestSensorsReading}>{"Refresh moisture readings"}</Button>
+                    <Button onClick={requestZonesReading}>{"Refresh status"}</Button>
                 </Paragraph>
             </Typography>
             <Collapse ghost>

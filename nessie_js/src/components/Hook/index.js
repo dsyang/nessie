@@ -95,6 +95,7 @@ const HookMqtt = () => {
     if (client) {
       client.end(() => {
         setConnectStatus('Connect');
+        setViewModel(INITIAL_VIEW_MODEL);
       });
     }
   }
@@ -168,6 +169,7 @@ const HookMqtt = () => {
           requestSensorsReading={genRequestMoistureReadings(mqttPublish)}
           requestStartWatering={genRequestStartWatering(mqttPublish, zone.zone_num)}
           requestStopWatering={genRequestStopWatering(mqttPublish, zone.zone_num)}
+          requestZonesReading={genRequestZonesReading(mqttPublish)}
         />
       ))}
 

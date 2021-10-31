@@ -155,10 +155,34 @@ function handleStopAllCommandResponse(payload, currentViewModel, setViewModel) {
 
 function handleStartWaterCommandResponse(payload, currentViewModel, setViewModel) {
     console.log(payload);
+    const zone_num = payload.msg.zone;
+    const status = payload.msg.status;
     const newViewModel = { ...currentViewModel };
 
+    let zone = newViewModel.zones[zone_num];
+    if (status === 200 && !zone.state.is_on) {
+        zone.state.is_on = true;
+        zone.state.last_changed_timestamp_ms = payload.timestamp_ms;
+    } else {
+        console.log(`Zone ${zone_num} already started`);
+    }
+
+    setViewModel(newViewModel);
 }
 
 function handleStopWaterCommandResponse(payload, currentViewModel, setViewModel) {
     console.log(payload);
+    const zone_num = payload.msg.zone;
+    const status = payload.msg.status;
+    const newViewModel = { ...currentViewModel };
+
+    let zone = newViewModel.zones[zone_num];
+    if (status === 200 && zone.state.is_on) {
+        zone.state.is_on = false;
+        zone.state.last_changed_timestamp_ms = payload.timestamp_ms;
+    } else {
+        console.log(`Zone ${zone_num} already stopped`);
+    }
+
+    setViewModel(newViewModel);
 }
