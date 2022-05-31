@@ -10,6 +10,14 @@ Indoor plant remote watering system for RPi
 - `python nessie.py /dev/ttyACM0 --uuid dsyangtest`
 - Use `lsof /dev/ttyACM0` to find out which process is connected right now
 
+
+## Production usful commands
+- Start program in a tmux so that it will kerp running
+- tmux uses `Ctrl-b` to activate
+- uses `C-b k` to kill session
+- `C-b d` to detatch
+- use `tmux ls` to find sessions and `tmux a` to attach
+
 ## Server.py
 
 This program listens for mqtt params and communicates with the gpio pins to start/stop water or retrieve moisture sensor data.
