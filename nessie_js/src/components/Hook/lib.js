@@ -32,8 +32,8 @@ export const INITIAL_VIEW_MODEL = {
 const ZONE_METADATA = [
     { title: "Solenoid Valve", plants: "" },
     { title: "Zone 1 (tub)", plants: "" },
-    { title: "Zone 2 ()", plants: "" },
-    { title: "Zone 3", plants: "" },
+    { title: "Zone 2 (small box)", plants: "" },
+    { title: "Zone 3 (big box)", plants: "" },
 ];
 
 export function transformTimestampMsToString(obj) {

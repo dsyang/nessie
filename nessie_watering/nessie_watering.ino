@@ -35,7 +35,7 @@ int WATER_PUMP_ZONE_2 = 4;
 int WATER_PUMP_ZONE_3 = 5;
 
 int ZONE_PINS[] = {WATER_PUMP_ZONE_0, WATER_PUMP_ZONE_1, WATER_PUMP_ZONE_2, WATER_PUMP_ZONE_3};
-int ZONE_MOISTURE_INDEX[] = {0, 3, 1, 2};
+int ZONE_MOISTURE_INDEX[] = {0, 1, 3, 2};
 char STATUS_CMD_OUT[] = "Z0(%d)=%d:%d Z1(%d)=%d:%d Z2(%d)=%d:%d Z3(%d)=%d:%d";
 
 char RESPONSE_JSON_OUT_PREFIX[] = "{\"data\":";
