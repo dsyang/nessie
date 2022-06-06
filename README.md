@@ -94,6 +94,13 @@ This program periodically sends MQTT commands to `Server.py` to read moisture se
 If moisture sensor data for a single zone is too high, it will issue a stop command for that zone.
 
 
+
+## nessie\_js
+
+runs on a replit
+
+run `yarn build` and copy the contents of the `build/` folder into the replit.
+
 ## Diary
 - Start a test today (10/30~2:30pm) Watering zone 2. Bottom watering
 ```
